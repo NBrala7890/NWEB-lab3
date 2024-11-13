@@ -7,13 +7,31 @@ canvas.height = window.innerHeight - 4;
 // Parametri igre
 const brickRowCount = 5;
 const brickColumnCount = 7;
-const ballSpeed = 3;
-let score = 0;
+const brickWidth = 55;
+const brickHeight = 15;
+const brickPadding = 5;
+const brickOffsetTop = 50;
+const ballSpeed = 4;
+let score;
 let highScore = localStorage.getItem('highScore') || 0;
 
+var gameStartAudio = new Audio('../audio/arcade-ui-14-229514.mp3');
+var gameOverAudio = new Audio('../audio/game-over-arcade-6435.mp3');
+var gameFinishedAudio = new Audio('../audio/arcade-ui-18-229517.mp3');
+var roundScoreAudio = new Audio('../audio/arcade-ui-6-229503.mp3');
+
+let gameStart = true;
+let roundScoreAudioPlayed;
+let gameOver;
+let gameFinished;
+
+// Centering bricks by calculating the left offset
+const totalBrickWidth = (brickWidth + brickPadding) * brickColumnCount - brickPadding;
+const brickOffsetLeft = (canvas.width - totalBrickWidth) / 2;
+
 // Objekti igre
-let ball = { x: canvas.width / 2, y: canvas.height - 30, dx: ballSpeed, dy: -ballSpeed, radius: 10 };
-let paddle = { x: canvas.width / 2 - 50, y: canvas.height - 20, width: 100, height: 10, speed: 10, dx: 0 };
+let ball = { x: canvas.width / 2, y: canvas.height - 30, radius: 10 };;
+let paddle = { x: canvas.width / 2 - 50, y: canvas.height - 20, width: 100, height: 10, speed: 10, dx: 0 };;
 let bricks = [];
 
 // Kreiranje cigli
@@ -21,18 +39,25 @@ function createBricks() {
     for (let row = 0; row < brickRowCount; row++) {
         bricks[row] = [];
         for (let col = 0; col < brickColumnCount; col++) {
-            bricks[row][col] = { x: col * 60, y: row * 20 + 50, width: 55, height: 15, visible: true };
+            const x = col * (brickWidth + brickPadding) + brickOffsetLeft;
+            const y = row * (brickHeight + brickPadding) + brickOffsetTop;
+            bricks[row][col] = { x, y, width: brickWidth, height: brickHeight, visible: true };
         }
     }
 }
 
-createBricks();
+// Randomize the initial direction of the ball
+function setRandomBallDirection() {
+    const angle = Math.random() * (Math.PI); // Angle between 0 and +180 degrees
+    ball.dx = ballSpeed * Math.cos(angle);
+    ball.dy = -ballSpeed * Math.sin(angle); // Initially moving upwards
+}
 
 // Iscrtavanje loptice
 function drawBall() {
     ctx.beginPath();
     ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-    ctx.fillStyle = '#00f';
+    ctx.fillStyle = '#ffff00';
     ctx.fill();
     ctx.closePath();
 }
@@ -61,10 +86,56 @@ function drawBricks() {
 
 // Iscrtavanje rezultata
 function drawScore() {
+    if (score > 0 && score % 10 == 0 && !roundScoreAudioPlayed) {
+        roundScoreAudio.play();
+        roundScoreAudioPlayed = true;
+    }
+    // Resetiramo roundScoreAudioPlayed varijablu jednom kada smo se makli od okruglog scorea
+    if (score % 10 == 1)
+        roundScoreAudioPlayed = false;
+    
     ctx.fillStyle = '#fff';
     ctx.font = '20px Arial';
-    ctx.fillText(`Score: ${score}`, canvas.width - 100, 30);
-    ctx.fillText(`High Score: ${highScore}`, canvas.width - 147, 50);
+
+    // Always calculate the x-coordinate based on the current canvas width
+    const scoreXPosition = canvas.width - 70;
+    const highScoreXPosition = canvas.width - 93;
+
+    ctx.fillText(`Score: ${score}`, scoreXPosition, 30);
+    ctx.fillText(`High Score: ${highScore}`, highScoreXPosition, 50);
+}
+
+function drawStartGameMessage() {
+    ctx.fillStyle = '#ffff00';
+    ctx.font = '40px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText("WELCOME TO BREAKOUT", canvas.width / 2, canvas.height / 2);
+
+    ctx.font = '20px Arial';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText("Press SPACE key to start the game", canvas.width / 2, canvas.height / 2 + 40);
+}
+
+function drawGameOverMessage() {
+    ctx.fillStyle = '#ff0000';
+    ctx.font = '40px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2);
+
+    ctx.font = '20px Arial';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText("Press SPACE key to restart", canvas.width / 2, canvas.height / 2 + 40);
+}
+
+function drawGameFinishedMessage() {
+    ctx.fillStyle = '#00ff00';
+    ctx.font = '40px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText("CONGRATULATIONS! YOU COMPLETED THE GAME! :D", canvas.width / 2, canvas.height / 2);
+
+    ctx.font = '20px Arial';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText("Press SPACE key to restart", canvas.width / 2, canvas.height / 2 + 40);
 }
 
 function collisionDetection() {
@@ -75,6 +146,10 @@ function collisionDetection() {
     if (ball.y - ball.radius < 0) {
         ball.dy *= -1;
     }
+
+    // Game over if ball hits the bottom
+    if (ball.y + ball.radius > canvas.height)
+        endGame();
 
     // Sudar s palicom
     if (
@@ -122,62 +197,71 @@ function movePaddle() {
     if (paddle.x + paddle.width > canvas.width) paddle.x = canvas.width - paddle.width;
 }
 
-let gameOver = false;
-let gameCompleted = false;
-
 function checkAllBricksDestroyed() {
     return bricks.every(row => row.every(brick => !brick.visible));
 }
 
-function update() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+function resetGame() {
+    score = 0;
+    gameStart = false;
+    gameOver = false;
+    gameFinished = false;
+    roundScoreAudioPlayed = false;
 
-    // Draw game elements
-    drawBall();
-    drawPaddle();
-    drawBricks();
-    drawScore();
+    console.log(canvas.width);
+    console.log(canvas.height);
 
-    // Move game elements
-    moveBall();
-    movePaddle();
-    collisionDetection();
-
-    // Check if the ball hits the bottom edge
-    if (ball.y + ball.radius > canvas.height) {
-        // Only show the alert once and reload the game
-        if (!gameOver) {
-            gameOver = true; // Set gameOver to true to prevent further execution
-            alert("GAME OVER"); // Show the game over alert
-            document.location.reload(); // Reload the game only after alert is dismissed
-        }
-        return; // Exit the update function to stop further rendering
-    }
-
-    // Check if all bricks are destroyed (Game Completed)
-    if (checkAllBricksDestroyed()) {
-        if (!gameCompleted) {
-            gameCompleted = true;
-            alert("CONGRATULATIONS! YOU COMPLETED THE GAME!");
-            document.location.reload();
-        }
-        return;
-    }
-
-    // Request the next animation frame if game is not over or completed
-    if (!gameOver && !gameCompleted) {
-        requestAnimationFrame(update);
-    }
-
-    // if (ball.y + ball.radius > canvas.height) {
-    //     alert("GAME OVER");
-    //     document.location.reload();
-    // }
-
-    // requestAnimationFrame(update);
+    // Initialising the game parameters
+    ball = { x: canvas.width / 2, y: canvas.height - 30, radius: 10 };
+    paddle = { x: canvas.width / 2 - 50, y: canvas.height - 20, width: 100, height: 10, speed: 10, dx: 0 };
+    bricks = [];
+    
+    createBricks();
+    setRandomBallDirection();
+    gameStartAudio.play();
+    update();
 }
 
-update();
+function endGame() {
+    gameOver = true;
+    gameOverAudio.play();
+    drawGameOverMessage();
+}
+
+function finishGame() {
+    gameFinished = true;
+    gameFinishedAudio.play();
+    drawGameFinishedMessage();
+}
+
+// Game update loop
+function update() {
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (gameStart) {
+        drawStartGameMessage();
+    }
+    else {
+        // Draw game elements
+        drawBall();
+        drawPaddle();
+        drawBricks();
+        drawScore();
+
+        // Move game elements
+        moveBall();
+        movePaddle();
+        collisionDetection();
+
+        if (checkAllBricksDestroyed())
+            finishGame();
+
+        if (!gameOver && !gameFinished)
+            requestAnimationFrame(update);
+    }
+    
+}
 
 document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight') {
@@ -185,8 +269,14 @@ document.addEventListener('keydown', (e) => {
     } else if (e.key === 'ArrowLeft') {
         paddle.dx = -paddle.speed;
     }
+
+    // Restart game on space key press if game is over
+    if (e.key === ' ' && (gameOver || gameFinished || gameStart)) 
+        resetGame();
 });
 
 document.addEventListener('keyup', () => {
     paddle.dx = 0;
 });
+
+update();
