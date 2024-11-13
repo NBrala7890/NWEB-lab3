@@ -48,7 +48,8 @@ function createBricks() {
 
 // Randomize the initial direction of the ball
 function setRandomBallDirection() {
-    const angle = Math.random() * (Math.PI); // Angle between 0 and +180 degrees
+     // Generate a random angle between 30 and 150 degrees, converted to radians
+     const angle = (Math.random() * (150 - 30) + 30) * (Math.PI / 180);
     ball.dx = ballSpeed * Math.cos(angle);
     ball.dy = -ballSpeed * Math.sin(angle); // Initially moving upwards
 }
