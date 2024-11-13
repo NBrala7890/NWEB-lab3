@@ -144,11 +144,11 @@ function drawGameFinishedMessage() {
 function collisionDetection() {
     // Sudar s rubovima ekrana
     if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
-        // tapAudio.play();
+        tapAudio.play();
         ball.dx *= -1;
     }
     if (ball.y - ball.radius < 0) {
-        // tapAudio.play();
+        tapAudio.play();
         ball.dy *= -1;
     }
 
@@ -177,7 +177,7 @@ function collisionDetection() {
                     ball.y - ball.radius < brick.y + brick.height &&
                     ball.y + ball.radius > brick.y
                 ) {
-                    // hitAudio.play();
+                    hitAudio.play();
                     ball.dy *= -1;
                     brick.visible = false;
                     score++;
