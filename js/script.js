@@ -19,6 +19,8 @@ var gameStartAudio = new Audio('../audio/arcade-ui-14-229514.mp3');
 var gameOverAudio = new Audio('../audio/game-over-arcade-6435.mp3');
 var gameFinishedAudio = new Audio('../audio/arcade-ui-18-229517.mp3');
 var roundScoreAudio = new Audio('../audio/arcade-ui-6-229503.mp3');
+var tapAudio = new Audio('../audio/tap-dull-betacut-1-00-00.mp3');
+var hitAudio = new Audio('../audio/countdown-sound-effect-8-bit-151797-cropped.mp3');
 
 let gameStart = true;
 let roundScoreAudioPlayed;
@@ -142,9 +144,11 @@ function drawGameFinishedMessage() {
 function collisionDetection() {
     // Sudar s rubovima ekrana
     if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
+        tapAudio.play();
         ball.dx *= -1;
     }
     if (ball.y - ball.radius < 0) {
+        tapAudio.play();
         ball.dy *= -1;
     }
 
@@ -158,6 +162,7 @@ function collisionDetection() {
         ball.x < paddle.x + paddle.width &&
         ball.y + ball.radius > paddle.y
     ) {
+        tapAudio.play();
         ball.dy *= -1;
         ball.y = paddle.y - ball.radius;
     }
@@ -172,6 +177,7 @@ function collisionDetection() {
                     ball.y - ball.radius < brick.y + brick.height &&
                     ball.y + ball.radius > brick.y
                 ) {
+                    hitAudio.play();
                     ball.dy *= -1;
                     brick.visible = false;
                     score++;
