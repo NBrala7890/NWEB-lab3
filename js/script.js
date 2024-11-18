@@ -5,6 +5,7 @@ canvas.width = window.innerWidth - 4;
 canvas.height = window.innerHeight - 4;
 
 // Parametri igre
+let totalBricks;
 let brickRowCount;
 let brickColumnCount;
 const brickWidth = 70;
@@ -37,16 +38,32 @@ let ball;
 let paddle;
 let bricks;
 
+function calculateGrid() {
+    // Step 1: Start with an approximate square root for one dimension
+    brickRowCount = Math.floor(Math.sqrt(totalBricks));
+    brickColumnCount = Math.ceil(totalBricks / brickRowCount); // Ceiling of totalBricks / rowCount
+
+    // Step 2: Check if the grid can be made more balanced
+    while (brickRowCount * brickColumnCount < totalBricks) {
+        brickRowCount++;
+        brickColumnCount = Math.ceil(totalBricks / brickRowCount);
+    }
+}
+
 // Kreiranje cigli
 function createBricks() {
+    let bricksCreated = 0;
     for (let row = 0; row < brickRowCount; row++) {
-        console.log("Brickrow");
         bricks[row] = [];
         for (let col = 0; col < brickColumnCount; col++) {
-            console.log("BrickColumn");
-            const x = col * (brickWidth + brickPadding) + brickOffsetLeft;
-            const y = row * (brickHeight + brickPadding) + brickOffsetTop;
-            bricks[row][col] = { x, y, width: brickWidth, height: brickHeight, visible: true };
+            if (bricksCreated < totalBricks) {
+                const x = col * (brickWidth + brickPadding) + brickOffsetLeft;
+                const y = row * (brickHeight + brickPadding) + brickOffsetTop;
+                bricks[row][col] = { x, y, width: brickWidth, height: brickHeight, visible: true };
+                bricksCreated++;
+            }
+            else
+                break;
         }
     }
 }
@@ -321,21 +338,21 @@ document.addEventListener('keydown', (e) => {
     if (e.key === ' ' && !spaceKeyHandled && (gameOver || gameFinished || !gameLoaded))  {
         spaceKeyHandled = true;
         if (!gameLoaded) {
-            const rowInput = document.getElementById('brickRowCount');
-            const colInput = document.getElementById('brickColumnCount');
+            const totalBricksInput = document.getElementById('totalBricks');
             const speedInput = document.getElementById('ballSpeed');
 
             // Parse input values
-            brickRowCount = parseInt(rowInput.value);
-            brickColumnCount = parseInt(colInput.value);
+            totalBricks = parseInt(totalBricksInput.value);
             ballSpeed = parseFloat(speedInput.value);
 
             // Validate input
-            if (isNaN(brickRowCount) || isNaN(brickColumnCount) || isNaN(ballSpeed) || brickRowCount <= 0 || brickColumnCount <= 0 || ballSpeed <= 0) {
+            if (isNaN(totalBricks) || isNaN(ballSpeed) || totalBricks <= 0 || ballSpeed <= 0) {
                 alert("Please enter valid positive numbers for all fields.");
                 spaceKeyHandled = false; // Allow retry if inputs are invalid
                 return;
             }
+
+            calculateGrid();
 
             // Hide input screen
             document.getElementById('startScreen').style.display = 'none';
