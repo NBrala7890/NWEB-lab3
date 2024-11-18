@@ -4,11 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Breakout Game</title>
-    <link rel="stylesheet" href="css/style.css">
-    <script src="js/script.js" defer></script>
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/script.js" defer></script>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
-    <script src="script.js"></script>
+    <main id="gameArea">
+        <canvas id="gameCanvas"></canvas>
+    </main>
+    <div id="startScreen">
+        <h1>Welcome to <span class="highlight">Breakout!</span></h1>
+        <div class="controls">
+            <label>Brick Rows: <input type="number" id="brickRowCount" value="5" min="1" /></label>
+            <label>Brick Columns: <input type="number" id="brickColumnCount" value="7" min="1" /></label>
+            <label>Ball Speed: <input type="number" id="ballSpeed" value="4" min="1" /></label>
+        </div>
+        <h2>Press <span class="key">SPACE</span> to start</h2>
+    </div>
 </body>
 </html>
