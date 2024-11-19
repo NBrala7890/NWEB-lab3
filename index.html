@@ -1,22 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Sets the character encoding for the document -->
     <meta charset="UTF-8">
+
+    <!-- Ensures that the website is responsive and scales properly on different devices -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- The title of the webpage displayed in the browser tab -->
     <title>Breakout Game</title>
+
+    <!-- Link to the external CSS file for styling -->
     <link rel="stylesheet" href="../css/style.css">
+    
+    <!-- Link to the external JavaScript file for game logic -->
+    <!-- The 'defer' attribute ensures the script is loaded after the HTML is parsed -->
     <script src="../js/script.js" defer></script>
 </head>
 <body>
+    <!-- Main container for the game -->
     <main id="gameArea">
+        <!-- The canvas element where the game will be drawn -->
         <canvas id="gameCanvas"></canvas>
     </main>
+    
+    <!-- Start screen displayed before the game begins -->
     <div id="startScreen">
+        <!-- Game welcome title -->
         <h1>Welcome to <span class="highlight">Breakout!</span></h1>
+
+        <!-- Controls section for input values -->
         <div class="controls">
-            <label>Total number of bricks <input type="number" id="totalBricks" value="1" min="1" /></label>
-            <label>Ball Speed <input type="number" id="ballSpeed" value="4" min="1" /></label>
+            <!-- Input for specifying the total number of bricks -->
+            <label>Total number of bricks 
+                <input type="number" id="totalBricks" value="4" min="1" />
+            </label>
+            <!-- Input for setting the speed of the ball -->
+            <label>Ball Speed 
+                <input type="number" id="ballSpeed" value="4" min="1" />
+            </label>
         </div>
+
+        <!-- Instructions for starting the game -->
         <h2>Press <span class="key">SPACE</span> to start</h2>
     </div>
 </body>
